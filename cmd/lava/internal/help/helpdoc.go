@@ -2,7 +2,12 @@
 
 package help
 
-import "github.com/adevinta/lava/cmd/lava/internal/base"
+import (
+	_ "embed"
+	"fmt"
+
+	"github.com/adevinta/lava/cmd/lava/internal/base"
+)
 
 // HelpLavaYAML documents the configuration file format.
 var HelpLavaYAML = &base.Command{
@@ -281,4 +286,64 @@ General-purpose environment variables:
 		"DockerdPodmanDesktop" are also valid, but they are
 		considered experimental.
 	`,
+}
+
+//go:embed checktypes.json
+var checktypes string
+
+//go:embed checktypes_schema.json
+var checktypesJSONSchema string
+
+// HelpChecktypes documents the Lava checktypes file.
+var HelpChecktypes = &base.Command{
+	UsageLine: "checktypes",
+	Short:     "checktypes file",
+	Long: fmt.Sprintf(`
+The controls that Lava uses are defined in the checktypes file. This 
+file is configured in the lava.yaml file.
+The init command already includes a file that has been tailored by our 
+security experts to provide the most balanced configuration.
+
+This file look like this:
+
+%s
+
+However, you may want you build your own custom file. For that, there 
+are a few things to take into account:
+
+%s
+
+  - The file must comply with the JSON Schema above.
+  - You can include the checks contained in 
+    (<https://github.com/adevinta/vulcan-checks>), whose images are in 
+    <https://hub.docker.com/u/vulcansec>. Under the cmd folder, you'll 
+    find all the checks. In each check folder, thereis a manifest.toml
+    file, which contains all the information needed to configure the 
+    check.
+  - If none of the available checks meet all your needs, you can even 
+    develop your own checks like 
+    <https://adevinta.github.io/vulcan-docs/developing-checks>.
+
+Now, let's see in detail how each check is configured in the 
+checktypes file:
+
+  - name: Name of the check.
+  - description: Description of the check.
+  - image: Name of the image needed to run the check.
+  - timeout: Timeout of the check.
+  - required_vars: Environment variables passed to the check. They
+    are defined in the manifest.toml file.
+  - assets: One or more of the asset types accepted as target by the 
+    check. They are defined in the manifest.toml file.
+  - options:
+      - depth: Limits fetching to the specified number of commits when
+        the asset type is a git repository.
+      - branch: branch to check out when the asset type is a git 
+        repository.
+      - Others options: Check the manifest.toml file to configure the 
+        check accordingly.
+
+For more details about available checktype please visit 
+<https://adevinta.github.io/lava-docs/controls.html>.
+`, checktypes, checktypesJSONSchema),
 }
